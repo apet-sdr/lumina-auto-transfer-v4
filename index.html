@@ -1,98 +1,461 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#090a0f"><meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="manifest" href="manifest.webmanifest"><title>LUMINA Auto Transfer v4</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LUMINA v5">
+<link rel="manifest" href="manifest.webmanifest">
+<title>LUMINA v5</title>
 <style>
-:root{--b:#090a0f;--p:#11131a;--p2:#171a23;--l:#292d3a;--t:#f7f8ff;--m:#9da5ba;--a:#7b61ff;--a2:#3e8cff}
-*{box-sizing:border-box}body{margin:0;background:var(--b);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding-bottom:88px}
-header{position:sticky;top:0;background:#090a0fee;padding:18px 16px;border-bottom:1px solid var(--l);z-index:5}
-h1{margin:0}small,.note{color:var(--m)}main{padding:16px;max-width:900px;margin:auto}
-.card{background:var(--p);border:1px solid var(--l);border-radius:20px;padding:16px;margin-bottom:14px}
-.field{margin-bottom:15px}label{display:block;font-weight:750;margin-bottom:8px}
-input,textarea,select{width:100%;padding:13px;border-radius:14px;background:#0f1118;color:#fff;border:1px solid var(--l);font:inherit}
-textarea{min-height:100px}button{font:inherit;border:none;border-radius:14px;padding:13px 15px;font-weight:750}
-.primary{width:100%;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff}
-.secondary{background:var(--p2);color:#fff;border:1px solid var(--l)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.preview{width:100%;display:none;max-height:340px;object-fit:contain;border-radius:16px;margin-top:10px;background:#08090d}
-.box{white-space:pre-wrap;background:#0e1016;border:1px solid var(--l);border-radius:16px;padding:16px;line-height:1.55;min-height:180px}
-.status{padding:12px;border-radius:14px;margin:12px 0;background:#141824;border:1px solid var(--l)}.status.ok{color:#c5ffdf}.status.bad{color:#ffbac3}
-.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{background:#141824;color:#fff;border:1px solid var(--l);padding:10px}.chip.active{background:linear-gradient(135deg,#5634c9,#365fd9)}
-.view{display:none}.view.active{display:block}.bottom{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(3,1fr);background:#0c0d13f2;border-top:1px solid var(--l);padding:8px}
-.bottom button{background:none;color:var(--m)}.bottom button.active{color:#b29eff}.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#222533;padding:10px 15px;border-radius:999px;opacity:0}.toast.show{opacity:1}
-</style></head><body>
-<header><h1>LUMINA</h1><small>Automatic Transfer Prompt Studio v4</small></header>
+:root{
+  --bg:#090a0f;--panel:#11131a;--panel2:#171a23;--line:#292d3a;
+  --text:#f7f8ff;--muted:#9da5ba;--accent:#7b61ff;--accent2:#3e8cff;
+  --ok:#35d08a;--warn:#ffcc66;--bad:#ff7a8b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+body{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+header{
+  position:sticky;top:0;z-index:50;padding:calc(14px + env(safe-area-inset-top)) 16px 13px;
+  background:linear-gradient(180deg,rgba(9,10,15,.98),rgba(9,10,15,.90));
+  backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.06)
+}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand-left{display:flex;align-items:center;gap:11px}
+.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:22px}
+.brand h1{margin:0;font-size:23px}.brand small{display:block;color:var(--muted);margin-top:2px}
+main{max-width:980px;margin:auto;padding:16px}
+.view{display:none}.view.active{display:block}
+.hero{background:linear-gradient(135deg,#243c9f,#6d34e8);padding:22px;border-radius:24px;box-shadow:0 18px 55px rgba(45,51,153,.25)}
+.hero h2{margin:0 0 8px;font-size:28px}.hero p{margin:0 0 16px;color:#e5e7ff;line-height:1.5}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{margin-bottom:15px}label{display:block;font-weight:760;margin-bottom:8px}
+input,textarea,select{width:100%;padding:13px;border-radius:14px;background:#0f1118;color:#fff;border:1px solid var(--line);outline:none}
+textarea{min-height:104px;resize:vertical;line-height:1.48}
+.primary,.secondary,.ghost,.danger{border:none;border-radius:14px;padding:13px 15px;font-weight:780}
+.primary{width:100%;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.secondary{background:var(--panel2);color:#fff;border:1px solid var(--line)}
+.ghost{background:transparent;color:#fff}.danger{background:#2b1117;color:#ffabb5;border:1px solid #642834}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.preview{width:100%;display:none;max-height:360px;object-fit:contain;border-radius:18px;background:#08090d;border:1px solid var(--line);margin-top:10px}
+.box{white-space:pre-wrap;background:#0e1016;border:1px solid var(--line);border-radius:18px;padding:16px;line-height:1.56;min-height:160px}
+.status{padding:12px 14px;border-radius:14px;background:#141824;border:1px solid var(--line);margin:12px 0}
+.status.ok{color:#c5ffdf;border-color:#245a40}.status.bad{color:#ffc2ca;border-color:#692936}.status.warn{color:#ffe7a8;border-color:#695420}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{background:#141824;color:#fff;border:1px solid var(--line);padding:10px 12px;border-radius:14px}
+.chip.active{background:linear-gradient(135deg,#5634c9,#365fd9);border-color:transparent}
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.tab{white-space:nowrap;background:#141824;color:var(--muted);border:1px solid var(--line);padding:10px 12px;border-radius:12px}.tab.active{color:#fff;background:#242944}
+.score-card{display:flex;align-items:center;justify-content:space-between;gap:12px}.score{display:grid;place-items:center;width:68px;height:68px;border-radius:50%;background:#1d2340;font-size:25px;font-weight:850;color:#d9d3ff}
+.meter{height:10px;background:#151823;border-radius:999px;overflow:hidden}.meter>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:.25s}
+.history-item{padding:14px;border:1px solid var(--line);border-radius:16px;background:#0f1118;margin-bottom:10px}
+.history-item strong{display:block;margin-bottom:5px}.note{color:var(--muted);font-size:13px;line-height:1.45}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(12,13,19,.95);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
+.bottom button{background:none;border:none;color:var(--muted);padding:4px;font-size:10px}.bottom button.active{color:#b29eff}.bottom span{display:block;font-size:20px;margin-bottom:2px}
+.toast{position:fixed;left:50%;bottom:105px;transform:translateX(-50%);background:#222533;padding:11px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.2s;z-index:99}.toast.show{opacity:1}
+@media(max-width:720px){.grid2,.actions{grid-template-columns:1fr}.hero h2{font-size:24px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-left"><div class="logo">✦</div><div><h1>LUMINA</h1><small>Visual Intelligence Platform v5</small></div></div>
+    <button class="ghost" onclick="installHelp()">•••</button>
+  </div>
+</header>
+
 <main>
-<section id="home" class="view active"><div class="card"><h2>Upload one picture. Get a reusable editing prompt.</h2><p class="note">LUMINA describes the source picture and creates a prompt for using its scene on a different target reference picture.</p><button class="primary" onclick="showView('studio')">Start</button></div></section>
-<section id="studio" class="view"><div class="card">
-<div class="field"><label>1. Choose the source picture</label><input id="imageInput" type="file" accept="image/*"><img id="preview" class="preview"></div>
-<div class="field"><label>2. Choose what to transfer</label><div id="chips" class="chips"></div></div>
-<div class="field"><label>Target identity rule</label><select id="identity"><option>Absolute target identity lock</option><option>Strong target identity preservation</option><option>Flexible target identity preservation</option></select></div>
-<div class="field"><label>Optional extra request</label><textarea id="extra" placeholder="Example: keep the target person's clothing."></textarea></div>
-<div class="status" id="status">Ready. Choose a picture.</div>
-<button class="primary" onclick="analyzeImage()">Analyze Picture and Create Prompt</button>
-<h3>Actual Picture Description</h3><div id="description" class="box">No picture analyzed yet.</div>
-<h3>Copy-Ready Transfer Prompt</h3><div id="prompt" class="box">Your generated prompt will appear here.</div>
-<div class="actions" style="margin-top:12px"><button class="secondary" onclick="copyPrompt()">Copy Prompt</button><button class="secondary" onclick="sharePrompt()">Share Prompt</button></div>
-</div></section>
-<section id="output" class="view"><div class="card"><h3>Final Prompt</h3><div id="finalPrompt" class="box">No prompt yet.</div><div class="actions" style="margin-top:12px"><button class="secondary" onclick="copyPrompt()">Copy</button><button class="secondary" onclick="sharePrompt()">Share</button></div></div></section>
+<section id="home" class="view active">
+  <div class="hero">
+    <h2>Analyze. Transfer. Restore. Go Beyond.</h2>
+    <p>Upload any picture and LUMINA builds a detailed, professional, model-ready prompt with scene analysis, camera language, lighting, materials, composition, identity rules, and quality controls.</p>
+    <button class="primary" onclick="newProject()">Start New Project</button>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>Modes</h3>
+    <div class="grid2">
+      <button class="secondary" onclick="startMode('describe')">📷 Professional Description</button>
+      <button class="secondary" onclick="startMode('transfer')">🔁 Reference Transfer</button>
+      <button class="secondary" onclick="startMode('restore')">🛠 Restoration Prompt</button>
+      <button class="secondary" onclick="startMode('beyond')">✨ Go Beyond</button>
+    </div>
+  </div>
+</section>
+
+<section id="studio" class="view">
+  <div class="card">
+    <div class="tabs" id="modeTabs">
+      <button class="tab active" data-mode="describe">Describe</button>
+      <button class="tab" data-mode="transfer">Transfer</button>
+      <button class="tab" data-mode="restore">Restore</button>
+      <button class="tab" data-mode="beyond">Go Beyond</button>
+    </div>
+
+    <div class="field" style="margin-top:15px">
+      <label>Upload source picture</label>
+      <input id="imageInput" type="file" accept="image/*">
+      <img id="preview" class="preview" alt="Uploaded picture preview">
+      <div class="note">LUMINA analyzes visible content only. For transfer mode, the source supplies the scene while a different target reference supplies identity.</div>
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label>Project name</label>
+        <input id="projectName" placeholder="Example: cinematic portrait transfer">
+      </div>
+      <div class="field">
+        <label>Export target</label>
+        <select id="exportTarget">
+          <option>Universal</option>
+          <option>ChatGPT Images</option>
+          <option>Flux</option>
+          <option>Midjourney</option>
+          <option>Gemini</option>
+          <option>Stable Diffusion</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Transfer or preserve controls</label>
+      <div id="chips" class="chips"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label>Identity strength</label>
+        <select id="identity">
+          <option>Absolute identity lock</option>
+          <option>Strong identity preservation</option>
+          <option>Flexible identity preservation</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Prompt intensity</label>
+        <select id="intensity">
+          <option>Professional</option>
+          <option>Detailed</option>
+          <option>Maximum detail</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Optional request</label>
+      <textarea id="extra" placeholder="Example: keep the target person's original clothing, improve clarity, or make the scene cinematic."></textarea>
+    </div>
+
+    <div id="status" class="status">Ready. Upload a picture.</div>
+    <button class="primary" onclick="analyzeAndBuild()">Analyze Picture and Build Prompt</button>
+  </div>
+
+  <div class="card">
+    <h3>Deep Image Analysis</h3>
+    <div id="analysis" class="box">No picture analyzed yet.</div>
+  </div>
+
+  <div class="card">
+    <div class="score-card">
+      <div><h3 style="margin:0 0 4px">Prompt Quality</h3><div class="note" id="scoreNotes">Analyze a picture to calculate quality.</div></div>
+      <div id="score" class="score">0</div>
+    </div>
+    <div class="meter" style="margin-top:12px"><div id="meterFill"></div></div>
+  </div>
+
+  <div class="card">
+    <h3>Prompt Preview</h3>
+    <div id="promptPreview" class="box">Your prompt will appear here.</div>
+    <div class="actions" style="margin-top:12px">
+      <button class="secondary" onclick="goBeyond()">Go Beyond</button>
+      <button class="secondary" onclick="copyPrompt()">One-Tap Copy</button>
+    </div>
+  </div>
+</section>
+
+<section id="output" class="view">
+  <div class="card">
+    <h3>Final Export Prompt</h3>
+    <div id="finalPrompt" class="box">No prompt yet.</div>
+    <div class="actions" style="margin-top:12px">
+      <button class="secondary" onclick="copyPrompt()">Copy</button>
+      <button class="secondary" onclick="sharePrompt()">Share</button>
+      <button class="secondary" onclick="downloadPrompt()">Download TXT</button>
+      <button class="secondary" onclick="saveHistory()">Save to History</button>
+    </div>
+  </div>
+</section>
+
+<section id="history" class="view">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h3>Prompt History</h3>
+      <button class="danger" onclick="clearHistory()">Clear</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</section>
+
+<section id="chat" class="view">
+  <div class="card">
+    <h3>LUMINA Prompt Assistant</h3>
+    <p class="note">Use this local assistant to add instructions to the current prompt. It does not call a second paid API.</p>
+    <div class="field"><textarea id="chatInput" placeholder="Example: Make the camera language more cinematic and preserve the face more strictly."></textarea></div>
+    <button class="primary" onclick="applyAssistant()">Apply to Current Prompt</button>
+    <div id="chatLog" class="box" style="margin-top:14px;min-height:120px">No assistant changes yet.</div>
+  </div>
+</section>
 </main>
-<nav class="bottom"><button data-view="home" class="active">Home</button><button data-view="studio">Studio</button><button data-view="output">Output</button></nav><div id="toast" class="toast"></div>
+
+<nav class="bottom">
+  <button data-view="home" class="active"><span>⌂</span>Home</button>
+  <button data-view="studio"><span>✎</span>Studio</button>
+  <button data-view="output"><span>▤</span>Output</button>
+  <button data-view="history"><span>☰</span>History</button>
+  <button data-view="chat"><span>✦</span>Assistant</button>
+</nav>
+<div id="toast" class="toast"></div>
+
 <script>
 const API_ENDPOINT="https://lumina-vision-api.sjbamazon.workers.dev/api/describe";
-const opts=["Pose","Expression","Clothing","Camera angle","Framing","Composition","Lighting","Environment","Background","Color palette","Textures","Mood"];
-const state={image:null,analysis:null,prompt:"",selected:new Set(opts)};const $=id=>document.getElementById(id);
-opts.forEach(name=>{const b=document.createElement("button");b.className="chip active";b.textContent=name;b.onclick=()=>{state.selected.has(name)?state.selected.delete(name):state.selected.add(name);b.classList.toggle("active");if(state.analysis)buildPrompt()};$("chips").appendChild(b)});
+const controls=["Identity","Face","Expression","Pose","Hair","Clothing","Camera angle","Framing","Composition","Lighting","Environment","Background","Color palette","Textures","Mood"];
+const state={mode:"describe",image:null,analysis:null,prompt:"",selected:new Set(controls),beyond:false};
+const $=id=>document.getElementById(id);
+
+controls.forEach(name=>{
+  const b=document.createElement("button");
+  b.className="chip active";b.textContent=name;
+  b.onclick=()=>{state.selected.has(name)?state.selected.delete(name):state.selected.add(name);b.classList.toggle("active");if(state.analysis)buildPrompt()};
+  $("chips").appendChild(b);
+});
+
 document.querySelectorAll(".bottom button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
-$("identity").oninput=()=>state.analysis&&buildPrompt();$("extra").oninput=()=>state.analysis&&buildPrompt();
-$("imageInput").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.image=r.result;$("preview").src=r.result;$("preview").style.display="block";$("description").textContent="Picture loaded. Tap Analyze Picture and Create Prompt.";$("prompt").textContent="Waiting for analysis.";setStatus("Picture loaded and ready.",true)};r.readAsDataURL(f)};
-async function analyzeImage(){if(!state.image)return setStatus("Choose a source picture first.",false);setStatus("Analyzing the actual picture...",true);$("description").textContent="Analyzing...";try{const response=await fetch(API_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image:state.image})});const text=await response.text();let data;try{data=JSON.parse(text)}catch{throw new Error("Unreadable Worker response: "+text.slice(0,160))}if(!response.ok||data.error)throw new Error(data.detail||data.error||"Worker error");const meaningful=[data.subject,data.pose,data.environment,data.lighting,data.camera,data.summary,data.caption].filter(Boolean);if(!meaningful.length)throw new Error("The AI returned an empty description. Update the Worker to v3.");state.analysis=data;$("description").textContent=formatDescription(data);buildPrompt();setStatus("Finished. Prompt created.",true)}catch(err){$("description").textContent="Analysis error:\n"+err.message;$("prompt").textContent="No prompt was created.";setStatus("Analysis failed. Read the exact error above.",false)}}
-function formatDescription(a){return `Subject: ${a.subject||a.caption||a.summary||"Not specified"}
-Pose / action: ${a.pose||"Not specified"}
-Expression: ${a.expression||"Not specified"}
-Appearance / clothing: ${a.clothing||a.appearance||"Not specified"}
-Environment: ${a.environment||"Not specified"}
-Background: ${a.background||"Not specified"}
-Lighting: ${a.lighting||"Not specified"}
-Camera / framing: ${a.camera||"Not specified"}
-Composition: ${a.composition||"Not specified"}
-Colors: ${a.colors||"Not specified"}
-Textures: ${a.textures||"Not specified"}
-Mood: ${a.mood||a.summary||a.caption||"Not specified"}`}
-function buildPrompt(){const a=state.analysis;const selected=[...state.selected].join(", ");const extra=$("extra").value.trim()||"No additional changes beyond the selected scene transfer.";state.prompt=`Use the newly uploaded target reference picture as the absolute identity source and identity anchor.
+document.querySelectorAll("#modeTabs .tab").forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+["identity","intensity","exportTarget","extra"].forEach(id=>$(id).addEventListener("input",()=>state.analysis&&buildPrompt()));
 
-TARGET REFERENCE IDENTITY
-Preserve the exact person or subject in the target reference picture. Maintain the target identity, face, facial structure, age, skin tone, recognizable appearance, body proportions and natural realism. Do not copy the source person's identity.
+$("imageInput").onchange=e=>{
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>10*1024*1024){setStatus("Choose an image smaller than 10 MB.",false);return}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    state.image=reader.result;state.analysis=null;state.prompt="";state.beyond=false;
+    $("preview").src=reader.result;$("preview").style.display="block";
+    $("analysis").textContent="Picture loaded. Tap Analyze Picture and Build Prompt.";
+    $("promptPreview").textContent="Waiting for analysis.";$("finalPrompt").textContent="No prompt yet.";
+    setStatus("Picture loaded and ready.",true);updateScore();
+  };
+  reader.readAsDataURL(file);
+};
 
-SOURCE PICTURE DESCRIPTION TO RECREATE
-Subject role: ${a.subject||a.caption||a.summary||"source subject role"}.
-Pose and action: ${a.pose||"match the source pose and action"}.
-Expression: ${a.expression||"match the source expression"}.
-Clothing and styling: ${a.clothing||a.appearance||"match the source styling"}.
-Environment: ${a.environment||"recreate the source environment"}.
-Background: ${a.background||"recreate the source background"}.
-Lighting: ${a.lighting||"match the source lighting"}.
-Camera and framing: ${a.camera||"match the source camera and framing"}.
-Composition: ${a.composition||"match the source composition"}.
-Color palette: ${a.colors||"match the source colors"}.
-Textures and materials: ${a.textures||"match the source textures"}.
-Mood: ${a.mood||a.summary||a.caption||"match the source mood"}.
+function setMode(mode){
+  state.mode=mode;
+  document.querySelectorAll("#modeTabs .tab").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
+  if(state.analysis)buildPrompt();
+}
+function startMode(mode){showView("studio");setMode(mode)}
+function newProject(){
+  state.image=null;state.analysis=null;state.prompt="";state.beyond=false;
+  $("imageInput").value="";$("preview").style.display="none";$("projectName").value="";$("extra").value="";
+  $("analysis").textContent="No picture analyzed yet.";$("promptPreview").textContent="Your prompt will appear here.";$("finalPrompt").textContent="No prompt yet.";
+  setStatus("Ready. Upload a picture.",true);updateScore();showView("studio");
+}
 
-TRANSFER THESE ELEMENTS
+async function analyzeAndBuild(){
+  if(!state.image)return setStatus("Upload a picture first.",false);
+  setStatus("Analyzing subject, camera, lighting, materials and composition...",true);
+  $("analysis").textContent="Analyzing...";
+  try{
+    const response=await fetch(API_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image:state.image,depth:"maximum"})});
+    const text=await response.text();
+    let data;try{data=JSON.parse(text)}catch{throw new Error("Unreadable API response: "+text.slice(0,180))}
+    if(!response.ok||data.error)throw new Error(data.detail||data.error||"Vision API error");
+    state.analysis=data;state.beyond=false;
+    $("analysis").textContent=formatAnalysis(data);
+    buildPrompt();setStatus("Analysis complete. Professional prompt created.",true);
+    if(navigator.vibrate)navigator.vibrate(30);
+  }catch(error){
+    $("analysis").textContent="Analysis error:\n"+error.message;
+    $("promptPreview").textContent="No prompt created.";
+    setStatus("Analysis failed. Read the exact error above.",false);
+  }
+}
+
+function formatAnalysis(a){
+return `SUBJECT
+${a.subject||a.caption||a.summary||"Not specified"}
+
+POSE / ACTION
+${a.pose||"Not specified"}
+
+EXPRESSION
+${a.expression||"Not specified"}
+
+VISIBLE APPEARANCE
+${a.appearance||"Not specified"}
+
+HAIR
+${a.hair||"Not specified"}
+
+CLOTHING / ACCESSORIES
+${a.clothing||"Not specified"}
+
+CAMERA ANGLE / DISTANCE
+${a.camera||"Not specified"}
+
+LENS / FOCAL-LENGTH APPEARANCE
+${a.lens||"Not specified"}
+
+FRAMING / COMPOSITION
+${a.composition||"Not specified"}
+
+LIGHTING
+${a.lighting||"Not specified"}
+
+ENVIRONMENT
+${a.environment||"Not specified"}
+
+BACKGROUND
+${a.background||"Not specified"}
+
+COLORS
+${a.colors||"Not specified"}
+
+MATERIALS / TEXTURES
+${a.textures||"Not specified"}
+
+SKIN / SURFACE DETAIL
+${a.skin||"Not specified"}
+
+MOOD / PHOTOGRAPHIC STYLE
+${a.mood||a.summary||a.caption||"Not specified"}`;
+}
+
+function buildPrompt(){
+  const a=state.analysis;if(!a)return;
+  const selected=[...state.selected].join(", ");
+  const extra=$("extra").value.trim()||"No extra change requested.";
+  const intensity=$("intensity").value;
+  const target=$("exportTarget").value;
+  const mode=state.mode;
+
+  let intro,goal;
+  if(mode==="transfer"){
+    intro="Use the newly uploaded target reference picture as the absolute identity source and identity anchor.";
+    goal="Recreate the source picture's transferable scene, pose, camera, lighting, composition, environment, styling and mood around the exact target reference subject.";
+  }else if(mode==="restore"){
+    intro="Use the uploaded reference picture as the absolute visual source and preservation anchor.";
+    goal="Restore and enhance the same photograph without redesigning, replacing or reinterpreting its content.";
+  }else if(mode==="beyond"){
+    intro="Use the uploaded reference picture as the absolute visual foundation and identity anchor.";
+    goal="Preserve the reference faithfully while elevating photographic clarity, cinematic depth, realism, tonal control and material detail beyond ordinary professional quality.";
+  }else{
+    intro="Use the uploaded reference picture as the primary visual reference and starting point for the prompt.";
+    goal="Describe and preserve the visible picture with professional photographic precision.";
+  }
+
+  state.prompt=`${intro}
+
+MODE
+${mode.toUpperCase()} — ${intensity}
+
+PRIMARY GOAL
+${goal}
+
+DEEP SOURCE ANALYSIS
+Subject: ${a.subject||a.caption||a.summary||"Use the visible subject from the source image"}.
+Pose / action: ${a.pose||"Preserve or transfer the visible pose and action"}.
+Expression: ${a.expression||"Preserve or transfer the visible expression"}.
+Appearance: ${a.appearance||"Respect the visible appearance"}.
+Hair: ${a.hair||"Respect visible hair length, style, texture and placement"}.
+Clothing / accessories: ${a.clothing||"Respect visible clothing and accessories"}.
+Camera: ${a.camera||"Match the visible camera angle, height, distance and viewpoint"}.
+Lens appearance: ${a.lens||"Preserve the visible focal-length and perspective appearance"}.
+Composition: ${a.composition||"Match the visible framing, crop, subject placement and visual balance"}.
+Lighting: ${a.lighting||"Match the visible direction, softness, intensity, color and shadow behavior"}.
+Environment: ${a.environment||"Recreate or preserve the visible environment"}.
+Background: ${a.background||"Recreate or preserve the visible background"}.
+Color palette: ${a.colors||"Preserve the visible color relationships"}.
+Materials / textures: ${a.textures||"Preserve realistic materials and tactile detail"}.
+Skin / surface detail: ${a.skin||"Maintain authentic natural surface detail without plastic smoothing"}.
+Mood / photographic style: ${a.mood||a.summary||a.caption||"Preserve the visible photographic mood"}.
+
+CONTROL PRIORITIES
 ${selected}.
 
-IDENTITY PRESERVATION STRENGTH
-${$("identity").value}.
+IDENTITY RULE
+${$("identity").value}. In transfer mode, preserve the exact identity of the new target reference picture and do not copy the source person's identity. In all other modes, preserve the uploaded reference identity and recognizable appearance.
 
 ADDITIONAL REQUEST
 ${extra}
 
-FINAL EDITING INSTRUCTION
-Place the exact target reference subject into the reconstructed source scene. Transfer only the selected visual elements from the source description. Preserve the target identity with maximum fidelity while matching the selected source pose, expression, styling, camera, framing, lighting, composition, environment, background, color palette, textures and mood. Produce a photorealistic, coherent, high-quality result with believable anatomy, accurate perspective, realistic shadows, natural materials and no obvious AI artifacts.`;$("prompt").textContent=state.prompt;$("finalPrompt").textContent=state.prompt}
-async function copyPrompt(){if(!state.prompt)return toast("Analyze a picture first");await navigator.clipboard.writeText(state.prompt);toast("Prompt copied")}
-async function sharePrompt(){if(!state.prompt)return toast("Analyze a picture first");if(navigator.share)await navigator.share({title:"LUMINA Transfer Prompt",text:state.prompt});else copyPrompt()}
-function setStatus(m,ok){$("status").textContent=m;$("status").className="status "+(ok?"ok":"bad")}
-function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".bottom button").forEach(b=>b.classList.toggle("active",b.dataset.view===id))}
-function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1700)}
+PROFESSIONAL QUALITY TARGET
+Natural high-resolution photographic detail, realistic skin and surface texture, individual hair strands, authentic fabric weave, accurate material response, clean tonal separation, controlled highlights, deep but believable shadows, coherent perspective, realistic anatomy, accurate edge transitions, natural color science, restrained sharpening, no halos, no plastic skin, no invented objects, no distorted anatomy, no identity drift, and no obvious AI artifacts.
+
+MODEL EXPORT TARGET
+Adapt wording for ${target} while keeping the visual instructions model-agnostic and complete.
+
+FINAL INSTRUCTION
+Apply only the requested changes. Preserve all locked visual properties and maintain complete photographic continuity.`;
+
+  if(state.beyond){
+    state.prompt+=`
+
+GO BEYOND EXPANSION
+Add refined cinematic depth without stylization: physically believable global illumination, subtle environmental light bounce, realistic highlight roll-off, wavelength-consistent skin response, fine micro-contrast, lens-appropriate depth rendering, controlled atmospheric separation, authentic surface imperfections, high-frequency material detail, and editorial-grade tonal discipline. Keep the result photographed rather than rendered.`;
+  }
+
+  $("promptPreview").textContent=state.prompt;$("finalPrompt").textContent=state.prompt;updateScore();
+}
+
+function goBeyond(){if(!state.analysis)return toast("Analyze a picture first");state.beyond=true;buildPrompt();toast("Go Beyond applied")}
+function calculateScore(){
+  let score=0;
+  if(state.image)score+=15;
+  if(state.analysis)score+=40;
+  if(state.selected.size>=8)score+=15;
+  if($("extra").value.trim())score+=10;
+  if(state.beyond)score+=10;
+  if(state.prompt.length>1500)score+=10;
+  return Math.min(100,score);
+}
+function updateScore(){
+  const score=calculateScore();$("score").textContent=score;$("meterFill").style.width=score+"%";
+  $("scoreNotes").textContent=score>=90?"Commercial-ready prompt.":score>=70?"Strong prompt; optional details could improve it.":score>=40?"Analysis is present but the prompt can be strengthened.":"Upload and analyze a picture.";
+}
+async function copyPrompt(){if(!state.prompt)return toast("Create a prompt first");await navigator.clipboard.writeText(state.prompt);toast("Prompt copied")}
+async function sharePrompt(){if(!state.prompt)return toast("Create a prompt first");if(navigator.share)await navigator.share({title:"LUMINA v5 Prompt",text:state.prompt});else copyPrompt()}
+function downloadPrompt(){if(!state.prompt)return toast("Create a prompt first");const blob=new Blob([state.prompt],{type:"text/plain"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="LUMINA-v5-Prompt.txt";a.click();URL.revokeObjectURL(a.href)}
+function saveHistory(){
+  if(!state.prompt)return toast("Create a prompt first");
+  const key="lumina-v5-history";const items=JSON.parse(localStorage.getItem(key)||"[]");
+  items.unshift({id:Date.now(),name:$("projectName").value.trim()||state.mode+" prompt",mode:state.mode,target:$("exportTarget").value,date:new Date().toLocaleString(),prompt:state.prompt});
+  localStorage.setItem(key,JSON.stringify(items.slice(0,75)));renderHistory();toast("Saved to history");
+}
+function renderHistory(){
+  const items=JSON.parse(localStorage.getItem("lumina-v5-history")||"[]");
+  $("historyList").innerHTML=items.length?items.map(x=>`<div class="history-item"><strong>${escapeHtml(x.name)}</strong><div class="note">${escapeHtml(x.mode)} • ${escapeHtml(x.target)} • ${escapeHtml(x.date)}</div><div class="actions" style="margin-top:10px"><button class="secondary" onclick="openHistory(${x.id})">Open</button><button class="danger" onclick="deleteHistory(${x.id})">Delete</button></div></div>`).join(""):'<div class="note">No saved prompts yet.</div>';
+}
+function openHistory(id){const x=JSON.parse(localStorage.getItem("lumina-v5-history")||"[]").find(i=>i.id===id);if(!x)return;state.prompt=x.prompt;$("finalPrompt").textContent=x.prompt;showView("output")}
+function deleteHistory(id){const key="lumina-v5-history";localStorage.setItem(key,JSON.stringify(JSON.parse(localStorage.getItem(key)||"[]").filter(i=>i.id!==id)));renderHistory()}
+function clearHistory(){localStorage.removeItem("lumina-v5-history");renderHistory();toast("History cleared")}
+function applyAssistant(){
+  const instruction=$("chatInput").value.trim();if(!instruction)return toast("Type an instruction");
+  if(!state.prompt)return toast("Create a prompt first");
+  state.prompt+=`\n\nUSER REFINEMENT\n${instruction}\n\nApply this refinement without weakening any identity, composition, realism or preservation instructions above.`;
+  $("promptPreview").textContent=state.prompt;$("finalPrompt").textContent=state.prompt;
+  $("chatLog").textContent="Applied refinement:\n"+instruction;$("chatInput").value="";updateScore();toast("Assistant refinement applied");
+}
+function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".bottom button").forEach(b=>b.classList.toggle("active",b.dataset.view===id));if(id==="history")renderHistory();window.scrollTo({top:0,behavior:"smooth"})}
+function setStatus(message,ok){$("status").textContent=message;$("status").className="status "+(ok?"ok":"bad")}
+function toast(message){const t=$("toast");t.textContent=message;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1700)}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function installHelp(){alert("On iPhone: open LUMINA in Safari, tap Share, then Add to Home Screen.")}
+renderHistory();updateScore();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");
-</script></body></html>
+</script>
+</body>
+</html>

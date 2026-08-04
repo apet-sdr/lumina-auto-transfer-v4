@@ -1,10 +1,11 @@
 {
-  "name": "LUMINA Automatic Transfer Prompt Studio v4",
-  "short_name": "LUMINA",
+  "name": "LUMINA Visual Intelligence Platform v5",
+  "short_name": "LUMINA v5",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#090a0f",
   "theme_color": "#090a0f",
+  "description": "Professional image analysis, prompt generation, restoration, and reference transfer.",
   "icons": [
     {
       "src": "icon.svg",
