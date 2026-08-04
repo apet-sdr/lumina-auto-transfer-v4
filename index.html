@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090a0f"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest"><title>LUMINA Auto Transfer v4</title>
+<style>
+:root{--b:#090a0f;--p:#11131a;--p2:#171a23;--l:#292d3a;--t:#f7f8ff;--m:#9da5ba;--a:#7b61ff;--a2:#3e8cff}
+*{box-sizing:border-box}body{margin:0;background:var(--b);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding-bottom:88px}
+header{position:sticky;top:0;background:#090a0fee;padding:18px 16px;border-bottom:1px solid var(--l);z-index:5}
+h1{margin:0}small,.note{color:var(--m)}main{padding:16px;max-width:900px;margin:auto}
+.card{background:var(--p);border:1px solid var(--l);border-radius:20px;padding:16px;margin-bottom:14px}
+.field{margin-bottom:15px}label{display:block;font-weight:750;margin-bottom:8px}
+input,textarea,select{width:100%;padding:13px;border-radius:14px;background:#0f1118;color:#fff;border:1px solid var(--l);font:inherit}
+textarea{min-height:100px}button{font:inherit;border:none;border-radius:14px;padding:13px 15px;font-weight:750}
+.primary{width:100%;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff}
+.secondary{background:var(--p2);color:#fff;border:1px solid var(--l)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.preview{width:100%;display:none;max-height:340px;object-fit:contain;border-radius:16px;margin-top:10px;background:#08090d}
+.box{white-space:pre-wrap;background:#0e1016;border:1px solid var(--l);border-radius:16px;padding:16px;line-height:1.55;min-height:180px}
+.status{padding:12px;border-radius:14px;margin:12px 0;background:#141824;border:1px solid var(--l)}.status.ok{color:#c5ffdf}.status.bad{color:#ffbac3}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{background:#141824;color:#fff;border:1px solid var(--l);padding:10px}.chip.active{background:linear-gradient(135deg,#5634c9,#365fd9)}
+.view{display:none}.view.active{display:block}.bottom{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(3,1fr);background:#0c0d13f2;border-top:1px solid var(--l);padding:8px}
+.bottom button{background:none;color:var(--m)}.bottom button.active{color:#b29eff}.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#222533;padding:10px 15px;border-radius:999px;opacity:0}.toast.show{opacity:1}
+</style></head><body>
+<header><h1>LUMINA</h1><small>Automatic Transfer Prompt Studio v4</small></header>
+<main>
+<section id="home" class="view active"><div class="card"><h2>Upload one picture. Get a reusable editing prompt.</h2><p class="note">LUMINA describes the source picture and creates a prompt for using its scene on a different target reference picture.</p><button class="primary" onclick="showView('studio')">Start</button></div></section>
+<section id="studio" class="view"><div class="card">
+<div class="field"><label>1. Choose the source picture</label><input id="imageInput" type="file" accept="image/*"><img id="preview" class="preview"></div>
+<div class="field"><label>2. Choose what to transfer</label><div id="chips" class="chips"></div></div>
+<div class="field"><label>Target identity rule</label><select id="identity"><option>Absolute target identity lock</option><option>Strong target identity preservation</option><option>Flexible target identity preservation</option></select></div>
+<div class="field"><label>Optional extra request</label><textarea id="extra" placeholder="Example: keep the target person's clothing."></textarea></div>
+<div class="status" id="status">Ready. Choose a picture.</div>
+<button class="primary" onclick="analyzeImage()">Analyze Picture and Create Prompt</button>
+<h3>Actual Picture Description</h3><div id="description" class="box">No picture analyzed yet.</div>
+<h3>Copy-Ready Transfer Prompt</h3><div id="prompt" class="box">Your generated prompt will appear here.</div>
+<div class="actions" style="margin-top:12px"><button class="secondary" onclick="copyPrompt()">Copy Prompt</button><button class="secondary" onclick="sharePrompt()">Share Prompt</button></div>
+</div></section>
+<section id="output" class="view"><div class="card"><h3>Final Prompt</h3><div id="finalPrompt" class="box">No prompt yet.</div><div class="actions" style="margin-top:12px"><button class="secondary" onclick="copyPrompt()">Copy</button><button class="secondary" onclick="sharePrompt()">Share</button></div></div></section>
+</main>
+<nav class="bottom"><button data-view="home" class="active">Home</button><button data-view="studio">Studio</button><button data-view="output">Output</button></nav><div id="toast" class="toast"></div>
+<script>
+const API_ENDPOINT="https://lumina-vision-api.sjbamazon.workers.dev/api/describe";
+const opts=["Pose","Expression","Clothing","Camera angle","Framing","Composition","Lighting","Environment","Background","Color palette","Textures","Mood"];
+const state={image:null,analysis:null,prompt:"",selected:new Set(opts)};const $=id=>document.getElementById(id);
+opts.forEach(name=>{const b=document.createElement("button");b.className="chip active";b.textContent=name;b.onclick=()=>{state.selected.has(name)?state.selected.delete(name):state.selected.add(name);b.classList.toggle("active");if(state.analysis)buildPrompt()};$("chips").appendChild(b)});
+document.querySelectorAll(".bottom button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+$("identity").oninput=()=>state.analysis&&buildPrompt();$("extra").oninput=()=>state.analysis&&buildPrompt();
+$("imageInput").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.image=r.result;$("preview").src=r.result;$("preview").style.display="block";$("description").textContent="Picture loaded. Tap Analyze Picture and Create Prompt.";$("prompt").textContent="Waiting for analysis.";setStatus("Picture loaded and ready.",true)};r.readAsDataURL(f)};
+async function analyzeImage(){if(!state.image)return setStatus("Choose a source picture first.",false);setStatus("Analyzing the actual picture...",true);$("description").textContent="Analyzing...";try{const response=await fetch(API_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image:state.image})});const text=await response.text();let data;try{data=JSON.parse(text)}catch{throw new Error("Unreadable Worker response: "+text.slice(0,160))}if(!response.ok||data.error)throw new Error(data.detail||data.error||"Worker error");const meaningful=[data.subject,data.pose,data.environment,data.lighting,data.camera,data.summary,data.caption].filter(Boolean);if(!meaningful.length)throw new Error("The AI returned an empty description. Update the Worker to v3.");state.analysis=data;$("description").textContent=formatDescription(data);buildPrompt();setStatus("Finished. Prompt created.",true)}catch(err){$("description").textContent="Analysis error:\n"+err.message;$("prompt").textContent="No prompt was created.";setStatus("Analysis failed. Read the exact error above.",false)}}
+function formatDescription(a){return `Subject: ${a.subject||a.caption||a.summary||"Not specified"}
+Pose / action: ${a.pose||"Not specified"}
+Expression: ${a.expression||"Not specified"}
+Appearance / clothing: ${a.clothing||a.appearance||"Not specified"}
+Environment: ${a.environment||"Not specified"}
+Background: ${a.background||"Not specified"}
+Lighting: ${a.lighting||"Not specified"}
+Camera / framing: ${a.camera||"Not specified"}
+Composition: ${a.composition||"Not specified"}
+Colors: ${a.colors||"Not specified"}
+Textures: ${a.textures||"Not specified"}
+Mood: ${a.mood||a.summary||a.caption||"Not specified"}`}
+function buildPrompt(){const a=state.analysis;const selected=[...state.selected].join(", ");const extra=$("extra").value.trim()||"No additional changes beyond the selected scene transfer.";state.prompt=`Use the newly uploaded target reference picture as the absolute identity source and identity anchor.
+
+TARGET REFERENCE IDENTITY
+Preserve the exact person or subject in the target reference picture. Maintain the target identity, face, facial structure, age, skin tone, recognizable appearance, body proportions and natural realism. Do not copy the source person's identity.
+
+SOURCE PICTURE DESCRIPTION TO RECREATE
+Subject role: ${a.subject||a.caption||a.summary||"source subject role"}.
+Pose and action: ${a.pose||"match the source pose and action"}.
+Expression: ${a.expression||"match the source expression"}.
+Clothing and styling: ${a.clothing||a.appearance||"match the source styling"}.
+Environment: ${a.environment||"recreate the source environment"}.
+Background: ${a.background||"recreate the source background"}.
+Lighting: ${a.lighting||"match the source lighting"}.
+Camera and framing: ${a.camera||"match the source camera and framing"}.
+Composition: ${a.composition||"match the source composition"}.
+Color palette: ${a.colors||"match the source colors"}.
+Textures and materials: ${a.textures||"match the source textures"}.
+Mood: ${a.mood||a.summary||a.caption||"match the source mood"}.
+
+TRANSFER THESE ELEMENTS
+${selected}.
+
+IDENTITY PRESERVATION STRENGTH
+${$("identity").value}.
+
+ADDITIONAL REQUEST
+${extra}
+
+FINAL EDITING INSTRUCTION
+Place the exact target reference subject into the reconstructed source scene. Transfer only the selected visual elements from the source description. Preserve the target identity with maximum fidelity while matching the selected source pose, expression, styling, camera, framing, lighting, composition, environment, background, color palette, textures and mood. Produce a photorealistic, coherent, high-quality result with believable anatomy, accurate perspective, realistic shadows, natural materials and no obvious AI artifacts.`;$("prompt").textContent=state.prompt;$("finalPrompt").textContent=state.prompt}
+async function copyPrompt(){if(!state.prompt)return toast("Analyze a picture first");await navigator.clipboard.writeText(state.prompt);toast("Prompt copied")}
+async function sharePrompt(){if(!state.prompt)return toast("Analyze a picture first");if(navigator.share)await navigator.share({title:"LUMINA Transfer Prompt",text:state.prompt});else copyPrompt()}
+function setStatus(m,ok){$("status").textContent=m;$("status").className="status "+(ok?"ok":"bad")}
+function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".bottom button").forEach(b=>b.classList.toggle("active",b.dataset.view===id))}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1700)}
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");
+</script></body></html>

@@ -1,0 +1,16 @@
+{
+  "name": "LUMINA Automatic Transfer Prompt Studio v4",
+  "short_name": "LUMINA",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
